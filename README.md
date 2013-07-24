@@ -132,13 +132,13 @@ You may show brief usage on error with this.
 
 ```scala
 // options and args...
-override def completeOnError(config: C) = {
+override def completeOnError(config: Config) = {
   Console.err.println("try `scopt --help' for more information")
-  Some(c) // whole parse result becomes `c'
+  Some(config) // whole parse result becomes `c'
 }
 
 // otherwise
-override def completeOnError(config: C) = {
+override def completeOnError(config: Config) = {
   Console.err.println("try `scopt --help' for more information")
   None // whole parse result becomes fail
 }
