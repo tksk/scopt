@@ -192,6 +192,12 @@ abstract case class OptionParser[C](programName: String) {
   def showUsage {
     Console.err.println(usage)
   }
+
+  def completeOnError(config: C): Option[C] = {
+    showUsage
+    None
+  }
+
   def usage: String = {
     import OptionDef._
     val unsorted = options filter { o => o.kind != Head && !o.isHidden }
@@ -363,8 +369,7 @@ abstract case class OptionParser[C](programName: String) {
       _error = true
     }
     if (_error) {
-      showUsage
-      None
+      completeOnError(_config)
     }
     else Some(_config)
   }

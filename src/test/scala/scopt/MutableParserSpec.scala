@@ -80,6 +80,10 @@ class MutableParserSpec extends Specification { def is =      s2"""
 
   showUsage should
     print usage text                                            ${showUsageParser()}
+
+  completeOnError should
+    print brief usage text and fail                             ${showBriefUsage1()}
+    print brief usage text and go ahead                         ${showBriefUsage2()}
                                                                 """
 
   import SpecUtil._
@@ -341,30 +345,68 @@ update is a command.
         xyz is a boolean property"""
   }
 
-  def printParser(body: scopt.OptionParser[Unit] => Unit): String = {
-    val parser = new scopt.OptionParser[Unit]("scopt") {
-      head("scopt", "3.x")
-      help("help") text("prints this usage text")
-    }
+  val printParser1 = new scopt.OptionParser[Unit]("scopt") {
+    head("scopt", "3.x")
+    help("help") text("prints this usage text")
+  }
+
+  def printParser(body: => Unit): String = {
     val bos = new ByteArrayOutputStream()
-    Console.withErr(bos) { body(parser) }
+    Console.withErr(bos) { body }
     bos.toString("UTF-8")
   }
   def reportErrorParser(msg: String) = {
-    printParser(_.reportError(msg)) === "Error: foo".newline
+    printParser(printParser1.reportError(msg)) === "Error: foo".newline
   }
   def reportWarningParser(msg: String) = {
-    printParser(_.reportWarning(msg)) === "Warning: foo".newline
+    printParser(printParser1.reportWarning(msg)) === "Warning: foo".newline
   }
   def showHeaderParser() = {
-    printParser(_.showHeader) === "scopt 3.x".newline
+    printParser(printParser1.showHeader) === "scopt 3.x".newline
   }
   def showUsageParser() = {
-    printParser(_.showUsage) === """scopt 3.x
+    printParser(printParser1.showUsage) === """scopt 3.x
 Usage: scopt [options]
 
   --help
         prints this usage text
 """
   }
+
+  def showBriefUsage1() = {
+    var intValue = -1
+    val showBriefUsageParser1 = new scopt.OptionParser[Unit]("scopt") {
+      head("scopt", "3.x")
+      opt[Int]('f', "foo") foreach { intValue = _ }
+      help("help") text("prints this usage text")
+
+      override def completeOnError(c: Unit) = {
+        Console.err.println("brief usage...")
+        Console.err.println("try `scopt --help' for more information")
+        None // whole parse result becomes None
+      }
+    }
+    printParser(showBriefUsageParser1.parse(Seq("--foo", "42", "some_wrong_options"))) === 
+    """Error: Unknown argument 'some_wrong_options'
+brief usage...
+try `scopt --help' for more information
+""".newline.newlines
+  }
+  def showBriefUsage2() = {
+    var intValue = -1
+    val showBriefUsageParser2 = new scopt.OptionParser[Unit]("scopt") {
+      head("scopt", "3.x")
+      opt[Int]('f', "foo") foreach { intValue = _ }
+      help("help") text("prints this usage text")
+
+      override def completeOnError(c: Unit) = {
+        Console.err.println("brief usage...")
+        Console.err.println("try `scopt --help' for more information")
+        Some(c) // whole parse result becomes Some(c)
+      }
+    }
+    val result = showBriefUsageParser2.parse(Seq("--foo", "42", "some_wrong_options"))
+    intValue === 42
+  }
+
 }
