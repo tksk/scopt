@@ -134,7 +134,7 @@ You may show brief usage on error with this.
 // options and args...
 override def completeOnError(config: Config) = {
   Console.err.println("try `scopt --help' for more information")
-  Some(config) // whole parse result becomes `c'
+  Some(config) // whole parse result becomes `config'
 }
 
 // otherwise
