@@ -127,6 +127,23 @@ There are special options with predefined action called `help("help")` and `vers
 
 `note("...")` is used add given string to the usage text.
 
+`override def completeOnError(config: C)` to override the default action on parse error.
+You may show brief usage on error with this.
+
+```scala
+// options and args...
+override def completeOnError(config: C) = {
+  Console.err.println("try `scopt --help' for more information")
+  Some(c) // whole parse result becomes `c'
+}
+
+// otherwise
+override def completeOnError(config: C) = {
+  Console.err.println("try `scopt --help' for more information")
+  None // whole parse result becomes fail
+}
+```
+
 #### Arguments
 
 Command line arguments are defined using `arg[A]("<file>")`. It works similar to options, but instead it accepts values without `--` or `-`. By default, arguments accept a single value and are required.
