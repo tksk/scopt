@@ -22,7 +22,7 @@ Either case, first you need a case class that represents the configuration:
 import java.io.File
 case class Config(foo: Int = -1, out: File = new File("."), xyz: Boolean = false,
   libName: String = "", maxCount: Int = -1, verbose: Boolean = false, debug: Boolean = false,
-  mode: String = "", files: Seq[File] = Seq())
+  mode: String = "", files: Seq[File] = Seq(), keepalive: Boolean = true)
 ```
 
 In immutable parsing style, a config object is passed around as an argument into `action` callbacks.
